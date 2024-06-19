@@ -629,7 +629,7 @@
                         "role": "MASTER"
                     }, 
                     "mshrs": 4, 
-                    "writeback_clean": true, 
+                    "writeback_clean": false, 
                     "p_state_clk_gate_min": 1000, 
                     "tags": {
                         "size": 32768, 
@@ -718,7 +718,7 @@
                 "role": "MASTER"
             }, 
             "mshrs": 20, 
-            "writeback_clean": true, 
+            "writeback_clean": false, 
             "p_state_clk_gate_min": 1000, 
             "tags": {
                 "size": 131072, 
@@ -788,7 +788,7 @@
                 "role": "MASTER"
             }, 
             "mshrs": 20, 
-            "writeback_clean": true, 
+            "writeback_clean": false, 
             "p_state_clk_gate_min": 1000, 
             "tags": {
                 "size": 524288, 

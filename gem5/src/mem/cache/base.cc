@@ -364,7 +364,7 @@ BaseCache::recvTimingReq(PacketPtr pkt)
     // track time of availability of next prefetch, if any
     Tick next_pf_time = MaxTick;
 
-    if (satisfied) {
+    if (satisfied) { // HIT
         // if need to notify the prefetcher we have to do it before
         // anything else as later handleTimingReqHit might turn the
         // packet in a response
@@ -915,8 +915,8 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         return false;
     }
 
-    if (pkt->isEviction()) {
-        // We check for presence of block in above caches before issuing
+    if (pkt->isEviction()) {  //要寫入的block？
+        // We *check for presence of block* in above caches before issuing
         // Writeback or CleanEvict to write buffer. Therefore the only
         // possible cases can be of a CleanEvict packet coming from above
         // encountering a Writeback generated in this cache peer cache and
@@ -942,7 +942,7 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
                 // discard the CleanEvict by returning true.
                 wbPkt->clearBlockCached();
                 return true;
-            } else {
+            } else { //要寫入的block dirty
                 assert(pkt->cmd == MemCmd::WritebackDirty);
                 // Dirty writeback from above trumps our clean
                 // writeback... discard here
@@ -955,7 +955,7 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
 
     // Writeback handling is special case.  We can write the block into
     // the cache without having a writeable copy (or any copy at all).
-    if (pkt->isWriteback()) {
+    if (pkt->isWriteback()) {  //
         assert(blkSize == pkt->getSize());
 
         // we could get a clean writeback while we are having
@@ -1022,7 +1022,7 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         // of the block as well.
         assert(blkSize == pkt->getSize());
 
-        if (!blk) {
+        if (!blk) { //write miss
             if (pkt->writeThrough()) {
                 // if this is a write through packet, we don't try to
                 // allocate if the block is not present
@@ -1053,7 +1053,7 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         }
         // nothing else to do; writeback doesn't expect response
         assert(!pkt->needsResponse());
-        pkt->writeDataToBlock(blk->data, blkSize);
+        pkt->writeDataToBlock(blk->data, blkSize);  // 寫進block
         DPRINTF(Cache, "%s new state is %s\n", __func__, blk->print());
 
         incHitCount(pkt);
@@ -1064,12 +1064,17 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         // below
         return !pkt->writeThrough();
     } else if (blk && (pkt->needsWritable() ? blk->isWritable() :
-                       blk->isReadable())) {
+                       blk->isReadable())) { //讀寫請求
         // OK to satisfy access
         incHitCount(pkt);
         satisfyRequest(pkt, blk);
         maintainClusivity(pkt->fromCache(), blk);
-
+        // WRITE THROUGH
+        if (blk->isWritable()) {
+            PacketPtr writeclean_pkt = writecleanBlk(blk, pkt->req->getDest(), pkt->id);
+            writebacks.push_back(writeclean_pkt);
+        }
+        // WRITE THROUGH
         return true;
     }
 
@@ -1365,7 +1370,7 @@ BaseCache::writebackVisitor(CacheBlk &blk)
         Packet packet(&request, MemCmd::WriteReq);
         packet.dataStatic(blk.data);
 
-        memSidePort.sendFunctional(&packet);
+        memSidePort.sendFunctional(&packet); //send packet to memory
 
         blk.status &= ~BlkDirty;
     }
