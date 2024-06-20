@@ -84,13 +84,18 @@
     ./build/X86/gem5.opt -d ../q5_out/wirte_back/ configs/example/se.py -c ./tests/test-progs/hello/bin/x86/linux/benchmark/multiply --cpu-type=TimingSimpleCPU --caches --l1d_assoc=4 --l1i_assoc=4 --l2cache --l2_assoc=4 --l3cache --l3_assoc=4 --l1i_size=32kB --l1d_size=32kB --l2_size=128kB --l3_size=512kB --mem-type=NVMainMemory --nvmain-config=../NVmain/Config/PCM_ISSCC_2012_4GB.config > ../q5_out/log
     ```
     - log：
-        - ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/34430e85-dd55-4fe5-b853-0ddd3119a6da)
+        - ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/4a9a5e9b-a8f5-43c0-8611-c8e010048ece)
 
 - write through
-    - gem5/config/common/Caches.py中，將cache1、2、3中加入writeback_clean = True
-        - ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/24c8e0c3-dffa-45a9-a7e6-d7c79abb7dff)
-        - ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/944321e2-7e91-4c5e-b608-11da3cf17d77)
-        - ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/05b97ca6-af3f-4be4-9e59-c95a1d91d911)
+    - 在 write hit 後，生成 writeclean packet 送給 writebacks，writeclean 會一路往下 writeback 直到 memory  
+    - gem5/src/mem/cache/base.cc 的 BaseCache::access 中加入以下程式碼
+    ```=
+    if (blk->isWritable()) {
+        PacketPtr writeclean_pkt = writecleanBlk(blk, pkt->req->getDest(), pkt->id);
+        writebacks.push_back(writeclean_pkt);
+    }
+    ```
+    ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/78a36dfc-8351-443d-a039-1580807c1366)
 
     - command：
 
@@ -99,9 +104,6 @@
     ```
 
     - log：
-        - ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/1904d5b0-657f-4df5-929c-bf2285c3da3a)
-
-
-
+        - ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/464ee81f-736d-4806-9f45-b2c9433b79ba)
 
 
