@@ -24,7 +24,10 @@
     - 新增一個函數 (把l2的函數二都改成三即可)
     - ![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/71d200a2-cd10-49f0-839a-06a784c428fa)
 
-
+- 重新編譯
+    ```!
+    scons EXTRAS=../NVmain build/X86/gem5.opt
+    ```
 - 重新編譯後執行時 option 加上 --l3cache 即可調用 l3 cache
     - command:
     ```!
@@ -62,7 +65,6 @@
 - 原本的replacement policy：![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/bba409a7-442d-43bf-9ace-6056021396d2)
 
 - 後來的replacement policy：![image](https://github.com/Tommy-happy/gem5_final_project/assets/112320408/7aace83f-3521-4f34-8004-4d1759de23b9)
-
 
 - command-original policy
     ```!
